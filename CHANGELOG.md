@@ -1,3 +1,9 @@
+## 5.0-5.0-4.1 2024-08-26 <dave at tiredofit dot ca>
+
+   ### Added
+      - Mongo 5.0.29
+
+
 ## 5.0-4.0.14 2024-03-20 <dave at tiredofit dot ca>
 
    ### Added
