@@ -1,3 +1,9 @@
+## 5.0-4.1.1 2024-11-20 <dave at tiredofit dot ca>
+
+   ### Added
+      - MongoDB 5.0.30
+
+
 ## 5.0-5.0-4.1 2024-08-26 <dave at tiredofit dot ca>
 
    ### Added
