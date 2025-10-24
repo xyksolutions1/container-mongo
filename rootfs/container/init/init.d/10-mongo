@@ -1,0 +1,13 @@
+#!/command/with-contenv bash
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+source /container/base/functions/container/init
+SERVICE_NAME="mongo"
+
+mongo_bootstrap_filesystem
+mongo_build_runtime_arguments
+mongo_initialize_engine
+
+liftoff
