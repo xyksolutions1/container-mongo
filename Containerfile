@@ -18,7 +18,7 @@ LABEL \
         org.opencontainers.image.licenses="MIT"
 
 ARG \
-    MONGO_VERSION="r7.0.26" \
+    MONGO_VERSION="r7.0.27" \
     MONGO_REPO_URL="https://github.com/mongodb/mongo" \
     MONGOTOOLS_VERSION="master" \
     MONGOTOOLS_REPO_URL="https://github.com/mongodb/mongo-tools"
@@ -32,7 +32,9 @@ ENV \
     IMAGE_NAME="nfrastack/mongo" \
     IMAGE_REPO_URL="https://github.com/nfrastack/container-mongo/"
 
-EXPOSE 27017 28017
+EXPOSE \
+       27017 \
+       28017
 
 RUN echo "" && \
     MONGO_BUILD_DEPS_DEBIAN=" \
@@ -42,6 +44,7 @@ RUN echo "" && \
                                 liblzma-dev \
                                 libkrb5-dev \
                                 libssl-dev \
+                                lsb-release \
                                 python3-dev \
                                 python3-pip \
                             " \
