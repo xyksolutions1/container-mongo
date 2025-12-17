@@ -3,12 +3,12 @@
 # SPDX-License-Identifier: MIT
 
 mongo_bootstrap_filesystem() {
-    create_filesystem \
+    create_folder \
                         "${DATA_PATH}" \
                         mongo:mongo 0750
 
     if [ "${LOG_TYPE,,}" = "file" ] ; then
-        create_filesystem \
+        create_folder \
                             "${LOG_PATH}" \
                             mongo:mongo 0750
     	create_logrotate mongo "${LOG_PATH%/}/${LOG_FILE}" none mongo mongo
