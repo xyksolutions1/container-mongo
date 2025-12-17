@@ -11,6 +11,7 @@ check_container_initialized
 check_service_initialized init
 
 mongo_build_runtime_arguments
+
 liftoff
 print_start "Starting MongoDB $(mongod --version | head -n1 | awk '{print $3}')"
 exec s6-setuidgid mongo mongod ${mongocmd}

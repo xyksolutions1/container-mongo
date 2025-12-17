@@ -5,6 +5,7 @@
 
 source /container/base/functions/container/init
 SERVICE_NAME="mongo"
+prepare_service single
 
 mongo_bootstrap_filesystem
 mongo_build_runtime_arguments
