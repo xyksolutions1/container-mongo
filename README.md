@@ -78,10 +78,10 @@ Images are built for `amd64` by default, with optional support for `arm64` and o
 
 The following directories are used for configuration and can be mapped for persistent storage.
 
-| Directory   | Description    |
-| ----------- | -------------- |
-| `/data/db/` | Database Files |
-| `/logs/`    | Logfiles       |
+| Directory | Description    |
+| --------- | -------------- |
+| `/data/`  | Database Files |
+| `/logs/`  | Logfiles       |
 
 ### Environment Variables
 
@@ -111,7 +111,7 @@ Below is the complete list of available options that can be used to customize yo
 | `LOG_TYPE`              | Write to `FILE`                                                                   | `FILE`                   |       |          |
 | `ADMIN_NAME`            | Administrator Account name                                                        | `admin`                  | x     |          |
 | `ADMIN_PASS`            | Password of Admin user                                                            | `admin`                  | x     |          |
-| `DATA_PATH`             | Data Location                                                                     | `/data/db`               |       |          |
+| `DATA_PATH`             | Data Location                                                                     | `/data/`               |       |          |
 | `DB_NAME`               | Name of Database to create                                                        | `admin`                  | x     |          |
 | `DB_USER`               | Name of DB User to create if DB_NAME not admin                                    |                          | x     |          |
 | `DB_PASS`               | Password of DB User to create if DB_NAME not admin                                |                          |       |          |

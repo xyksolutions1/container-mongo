@@ -20,6 +20,8 @@ LABEL \
 ARG \
     MONGO_VERSION="r7.0.27" \
     MONGO_REPO_URL="https://github.com/mongodb/mongo" \
+    MONGOSHELL_VERSION="2.5.10" \
+    MONGOSHELL_REPO_URL="https://github.com/mongodb-js/mongosh" \
     MONGOTOOLS_VERSION="master" \
     MONGOTOOLS_REPO_URL="https://github.com/mongodb/mongo-tools"
 
@@ -50,14 +52,21 @@ RUN echo "" && \
                             " \
                             && \
     \
+    MONGO_RUN_DEPS_DEBIAN=" \
+                            nodejs \
+                            " \
+                            && \
+    \
     source /container/base/functions/container/build && \
     container_build_log image && \
     create_user mongo 27017 mongo 27017 /dev/null && \
+    package repo add node 22 && \
     package update && \
     package upgrade && \
     package build go && \
     package install \
                         MONGO_BUILD_DEPS \
+                        MONGO_RUN_DEPS \
                         && \
     \
     clone_git_repo "${MONGOTOOLS_REPO_URL}" "${MONGOTOOLS_VERSION}" && \
@@ -66,7 +75,10 @@ RUN echo "" && \
     mv bin/* /usr/local/sbin && \
     container_build_log add "Mongo Tools" "${MONGOTOOLS_VERSION}" "${MONGOTOOLS_REPO_URL}" && \
     \
+    npm install -g mongosh@${MONGOSHELL_VERSION/v/} && \
+    container_build_log add "Mongo Shell" "${MONGOSHELL_VERSION}" "npm" && \
     clone_git_repo "${MONGO_REPO_URL}" "${MONGO_VERSION}" && \
+    \
     source /container/base/functions/container/build && \
     pip install --break-system-packages uv && \
     uv venv /usr/src/mongo-build && \
@@ -74,15 +86,17 @@ RUN echo "" && \
     cd /usr/src/mongo && \
     uv pip install \
                     -r /usr/src/mongo/etc/pip/compile-requirements.txt \
-                && \
+                    && \
     python3 buildscripts/scons.py \
-                                    install-core \
+                                    install-devcore \
                                         --disable-warnings-as-errors \
                                         --linker=gold \
                                         -j$(( $(nproc) - 1 )) \
                                         && \
     strip build/install/bin/mongo* && \
-    mv build/install/bin/* /usr/local/sbin && \
+    mv \
+            build/install/bin/mongo* \
+        /usr/local/bin/ && \
     container_build_log add "Mongo DB" "${MONGO_VERSION}" "${MONGO_REPO_URL}" && \
     package remove \
                     MONGO_BUILD_DEPS \

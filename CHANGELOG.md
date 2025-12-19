@@ -2,6 +2,9 @@
 
    ### Added
       - MongoDB 7.0.27
+      - Mongo Shell 2.5.10
+      - Node 22
+      - Debian Bookworm
 
 
 ## 5.0-4.1.1 2024-11-20 <dave at tiredofit dot ca>

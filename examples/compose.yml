@@ -3,7 +3,7 @@ services:
     container_name: mongo-db
     image: docker.io/nfrastack/mongo:7
     volumes:
-      - ./db:/data/db
+      - ./db:/data
       - ./logs:/logs
     environment:
       - TIMEZONE=America/Vancouver
