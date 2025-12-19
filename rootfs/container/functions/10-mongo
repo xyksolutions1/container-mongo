@@ -17,7 +17,7 @@ mongo_bootstrap_filesystem() {
 
 mongo_build_runtime_arguments() {
     if [ "${SETUP_TYPE,,}" = "auto" ] ; then
-        mongocmd="--bind_ip 0.0.0.0 --port ${DB_PORT} --storageEngine ${STORAGE_ENGINE} --timeStampFormat iso8601-local --dbpath ${DATA_PATH}"
+        mongocmd="--bind_ip 0.0.0.0 --port ${LISTEN_PORT} --storageEngine ${STORAGE_ENGINE} --timeStampFormat iso8601-local --dbpath ${DATA_PATH}"
 
         if [ "${LOG_TYPE,,}" = "file" ] ; then
             mongocmd="${mongocmd} --logpath ${LOG_PATH%/}/${LOG_FILE} --logappend"
@@ -35,7 +35,7 @@ mongo_build_runtime_arguments() {
 
         if var_true "${ENABLE_REPLICATION}" ; then
             mongocmd="${mongocmd} --replSet ${REPLICATION_SET}"
-            REPLICATION_HOSTS=${REPLICATION_HOSTS:-"0:localhost:${DB_PORT}:1"}
+            REPLICATION_HOSTS=${REPLICATION_HOSTS:-"0:localhost:${LISTEN_PORT}:1"}
         fi
 
         if [ -n "${MAX_CONNECTIONS}" ]; then
@@ -60,7 +60,7 @@ mongo_initialize_engine() {
     if [ ! -f "${DATA_PATH%/}"/.mongodb_init ]; then
         if var_false "${SKIP_INIT}" ; then
             if [ ! -f "${DATA_PATH%/}"/.mongodb_password_set ]; then
-                print_notice "Configuring MongoDB Start up Options"
+                print_notice "Initializing MongoDB"
                 if var_true "${ENABLE_REPLICATION}" ; then
                     mongoinitcmd=$(echo ${mongocmd} | sed -i "s|--replSet ${REPLICATION_SET}||g")
                 else
@@ -71,7 +71,7 @@ mongo_initialize_engine() {
                 counter=1
 
                 while [[ counter -ne 0 ]]; do
-                    print_notice "Waiting for confirmation of MongoDB service startup"
+                    print_notice "Waiting for confirmation of MongoDB startup"
                     sleep 5
                     silent mongo admin --eval "help"
                     counter=$?
@@ -82,7 +82,7 @@ mongo_initialize_engine() {
                                     ADMIN_PASS \
                                     DB_NAME
 
-                print_notice "Creating admin with password"
+                print_notice "Creating admin user '${ADMIN_USER}'"
                 set +H
                 silent mongo admin --eval "db.createUser({user: '${ADMIN_USER}', pwd: '${ADMIN_PASS}', roles:[{role:'root',db:'admin'}]});"
                 sleep 2
@@ -94,37 +94,81 @@ mongo_initialize_engine() {
                     exit 1
                 fi
 
-                ### If we've defined the DB_NAME environment variable and it's a different database than admin, then create the user for that database.
-                if [ "${DB_NAME}" != "admin" ]; then
+                create_database() {
+                    local i="${1}"
+                    i=$(printf "%02d" $i)
                     transform_var file \
-                                        DB_USER \
-                                        DB_PASS
-                    sanity_var DB_USER "Database User needed for DB:${DB_NAME}"
-                    sanity_var DB_PASS "Database Pass needed for DB:${DB_NAME}"
+                                        DB${i}_NAME \
+                                        DB${i}_USER \
+                                        DB${i}_PASS \
+                                        DB${i}_ROLE
 
-                    print_notice "Creating a DB:${DB_NAME} user with password"
-                    set +H
-                    silent mongo "${DB_NAME}" --username "${ADMIN_USER}" --password "${ADMIN_PASS}" --authenticationDatabase "admin" --eval "db.createUser({user: '${DB_USER}', pwd: '${DB_PASS}', roles:[{role:'dbOwner',db:'${DB_NAME}'}]})"
-                    sleep 2
-                    set -H
-                    silent mongo "${DB_NAME}" --username "${DB_USER}" --password "${DB_PASS}" --authenticationDatabase "${DB_NAME}" --eval "assert(db.getUser('${DB_USER}'), 'DB user creation failed!');"
-                    if [ "${?}" -ne 0 ]; then
-                        print_error "DB user creation failed, exiting now."
-                        exit 1
+                    DB_NAME="DB${i}_NAME"
+                    DB_USER="DB${i}_USER"
+                    DB_PASS="DB${i}_PASS"
+                    DB_ROLE="DB${i}_ROLE"
+
+                    if [ "${!DB_NAME}" != "admin" ]; then
+                        sanity_var DB_USER "Database User needed for DB:${!DB_NAME}"
+                        sanity_var DB_PASS "Database Pass needed for DB:${!DB_NAME}"
+
+                            if [ -z "${!DB_ROLE}" ]; then
+                                role="${!DB_USER}:dbOwner"
+                            else
+                                role="${!DB_ROLE}"
+                            fi
+
+                            IFS=';' read -ra user_blocks <<< "${role}"
+                            for user_block in "${user_blocks[@]}"; do
+                                IFS=':' read -ra user_and_roles <<< "$user_block"
+                                user="${user_and_roles[0]}"
+                                roles_string="${user_and_roles[1]}"
+                                IFS=',' read -ra roles <<< "$roles_string"
+                                if [ -z "$roles_string" ] || [ "${#roles[@]}" -eq 0 ]; then
+                                    roles=("dbOwner")
+                                fi
+                                js_roles=""
+                                for r in "${roles[@]}"; do
+                                    js_roles+="{role: \"$r\", db: \"${!DB_NAME}\"},"
+                                done
+                                js_roles="[${js_roles%,}]"
+                                print_notice "Creating user ${user} in DB:${!DB_NAME} with roles: ${roles[*]}"
+                                set +H
+                                silent mongo "${!DB_NAME}" --username "${ADMIN_USER}" --password "${ADMIN_PASS}" --authenticationDatabase "admin" --eval "if (!db.getUser('$user')) { db.createUser({user: '$user', pwd: '${!DB_PASS}', roles: $js_roles, mechanisms: ['SCRAM-SHA-1','SCRAM-SHA-256']}); } else { db.updateUser('$user', {roles: $js_roles, pwd: '${!DB_PASS}'}); }"
+                                sleep 2
+                                set -H
+                                silent mongo "${!DB_NAME}" --username "$user" --password "${!DB_PASS}" --authenticationDatabase "${!DB_NAME}" --eval "assert(db.getUser('$user'), 'DB user creation failed!');"
+                                if [ "${?}" -ne 0 ]; then
+                                    print_error "DB user creation failed for ${user}, exiting."
+                                    exit 1
+                                fi
+                            done
                     fi
-                fi
-                sleep 1
+                    sleep 1
+                }
+
+                transform_var file \
+                                    DB_NAME \
+                                    DB_PASS \
+                                    DB_ROLE \
+                                    DB_USER
+
+                    if [ -n "${DB_NAME}" ] && [ -z "${DB01_NAME}" ] ; then export DB01_NAME="${DB_NAME}" ; unset DB_NAME ; fi
+                    if [ -n "${DB_USER}" ] && [ -z "${DB01_USER}" ] ; then export DB01_USER="${DB_USER}" ; unset DB_USER ; fi
+                    if [ -n "${DB_PASS}" ] && [ -z "${DB01_PASS}" ] ; then export DB01_PASS="${DB_PASS}" ; unset DB_PASS ; fi
+                    if [ -n "${DB_ROLE}" ] && [ -z "${DB01_ROLE}" ] ; then export DB01_ROLE="${DB_ROLE}" ; unset DB_ROLE ; fi
+
+                floop "$(printenv | sort | grep -cE '^DB([0-9].)_NAME')" create_database EMAN_BD
                 touch "${DATA_PATH%/}"/.mongodb_password_set
             fi
             echo "Initial Version: $(mongod --version | head -n1 | awk '{print $3}') | First Initialized on: $(date)" | silent tee "${DATA_PATH%/}"/.mongodb_init
-            silent s6-setuidgid mongo mongod --shutdown --dbpath "${DATA_PATH}"
+            silent s6-setuidgid mongo mongod --shutdown --dbpath "${DATA_PATH}" &
             shutdown_wait_counter=0
             while pgrep -u mongo mongod > /dev/null; do
                 sleep 1
                 shutdown_wait_counter=$((shutdown_wait_counter+1))
                 if [ "$shutdown_wait_counter" -gt 30 ]; then
-                    print_error "Could not shutdown mongod process, exiting now."
-                    break
+                    print_error "Could not shutdown mongod process - exiting."
                     exit 1
                 fi
             done
@@ -136,7 +180,7 @@ mongo_initialize_engine() {
         silent s6-setuidgid mongo mongod ${mongocmd} &
         counter=1
         while [[ counter -ne 0 ]]; do
-            print_notice "Waiting for confirmation of MongoDB service startup"
+            print_notice "Waiting for confirmation of MongoDB startup"
             sleep 5
             silent mongo admin --eval "help"
             counter=$?
@@ -150,13 +194,12 @@ mongo_initialize_engine() {
 
         echo "Waiting to become a master"
         echo 'while (!db.isMaster().ismaster) { sleep(100); }' | mongo
-        silent s6-setuidgid mongo mongod --shutdown --dbpath "${DATA_PATH}"
+        silent s6-setuidgid mongo mongod --shutdown --dbpath "${DATA_PATH}" &
         while pgrep -u mongo mongod > /dev/null; do
             sleep 1
             shutdown_wait_counter=$((shutdown_wait_counter+1))
             if [ "${shutdown_wait_counter}" -gt 30 ]; then
                 print_error "Could not shutdown mongod process, exiting now."
-                break
                 exit 1
             fi
         done

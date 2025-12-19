@@ -2,11 +2,22 @@ services:
   mongo-db:
     container_name: mongo-db
     image: docker.io/nfrastack/mongo:7
+    ports:
+      - "27017:27017"
     volumes:
       - ./db:/data
       - ./logs:/logs
     environment:
       - TIMEZONE=America/Vancouver
+
+      - LISTEN_PORT=27017
+      - ADMIN_USER=admin
+      - ADMIN_PASS=supersecurepassword
+
+      - DB01_NAME=database1
+      - DB01_USER=user1
+      - DB01_PASS=userpassword1
+      - DB01_ROLE=user1:readWrite,dbOwner
     restart: always
     networks:
       - services

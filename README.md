@@ -2,7 +2,7 @@
 
 ## About
 
-This repository will build a container for [mongo](https://www.mongo.net). A ..
+This repository will build a container for [MongoDB](https://www.mongo.net). A nosql database engine.
 
 ## Maintainer
 
@@ -100,31 +100,68 @@ Below is the complete list of available options that can be used to customize yo
 
 #### Core Configuration
 
-| Parameter               | Description                                                                       | Default                  | _FILE | Advanced |
-| ----------------------- | --------------------------------------------------------------------------------- | ------------------------ | ----- | -------- |
-| `SETUP_MODE`            | Auto configure based on environment variables `AUTO` or `MANUAL`                  | `AUTO`                   |       |          |
-| `ADDITIONAL_PARAMETERS` | Pass additional parameters to the mongod process (works with `SETUP_MODE=MANUAL`) |                          |       |          |
-| `CONFIG_FILE`           | Map and use a config file. Works with both `SETUP_MODE` values.                   |                          |       |          |
-|                         | All environment variables override config file                                    |                          |       |          |
-| `ENABLE_AUTHENTICATION` | Enable Authentication Features                                                    | `TRUE`                   |       |          |
-| `LOG_PATH`              | Log Path                                                                          | `/logs`                  |       |          |
-| `LOG_TYPE`              | Write to `FILE`                                                                   | `FILE`                   |       |          |
-| `ADMIN_NAME`            | Administrator Account name                                                        | `admin`                  | x     |          |
-| `ADMIN_PASS`            | Password of Admin user                                                            | `admin`                  | x     |          |
-| `DATA_PATH`             | Data Location                                                                     | `/data/`                 |       |          |
-| `DB_NAME`               | Name of Database to create                                                        | `admin`                  | x     |          |
-| `DB_USER`               | Name of DB User to create if DB_NAME not admin                                    |                          | x     |          |
-| `DB_PASS`               | Password of DB User to create if DB_NAME not admin                                |                          |       |          |
-| `DB_PORT`               | MongoDB Listening Port                                                            | `27017`                  |       |          |
-| `ENABLE_JOURNALING`     | Enable Journaling `TRUE` `FALSE`                                                  | `TRUE`                   |       |          |
-| `MAX_CONNECTIONS`       | Maximum Connections                                                               |                          |       |          |
-| `OPLOG_SIZE`            | OPLog Size                                                                        |                          |       |          |
-| `SKIP_INIT`             | Skip creating databases and admin users if used in a replica set                  | `FALSE`                  |       |          |
-| `ENABLE_REPLICATION`    | Enable Replication                                                                | `FALSE`                  |       |          |
-| `REPLICATION_SET`       | Name of Replication Set                                                           | `rs0`                    |       |          |
-| `REPLICATION_INIT`      | Initialize the Replica set                                                        |                          |       |          |
-| `REPLICATION_HOSTS`     | Comma seperated list of hosts to init the replica set                             | `0:localhost:$DB_PORT:1` |       |          |
-|                         | Syntax is `id:hostname:port:priority`                                             |                          |       |          |
+| Parameter               | Description                                                      | Default  | _FILE | Advanced |
+| ----------------------- | ---------------------------------------------------------------- | -------- | ----- | -------- |
+| `SETUP_MODE`            | Auto configure based on environment variables `AUTO` or `MANUAL` | `AUTO`   |       |          |
+| `LISTEN_PORT`           | MongoDB Listening Port                                           | `27017`  |       |          |
+| `DATA_PATH`             | Data Location                                                    | `/data/` |       |          |
+| `LOG_PATH`              | Log Path                                                         | `/logs`  |       |          |
+| `LOG_TYPE`              | Write to `FILE`                                                  | `FILE`   |       |          |
+| `CONFIG_FILE`           | Map and use a config file. Works with both `SETUP_MODE` values.  |          |       |          |
+|                         | All environment variables override config file                   |          |       |          |
+| `ENABLE_AUTHENTICATION` | Enable Authentication Features                                   | `TRUE`   |       |          |
+| `ADMIN_NAME`            | Administrator Account name                                       | `admin`  | x     |          |
+| `ADMIN_PASS`            | Password of Admin user                                           | `admin`  | x     |          |
+
+#### Database Options
+
+Automatically create user databases on startup. This can be done on each container start, and then removed on subsequent starts if desired.
+This will only work if your database name is not set to "`admin`"
+
+| Parameter | Description                                | Default | `_FILE` | Advanced |
+| --------- | ------------------------------------------ | ------- | ------- | -------- |
+| `DB_NAME` | Database Name e.g. `database`              |         | x       |          |
+| `DB_USER` | Database User e.g. `user`                  |         | x       |          |
+| `DB_PASS` | Database Pass e.g. `password`              |         | x       |          |
+| `DB_ROLE` | (optional) Database role to assign to user | dbOwner | x       |          |
+
+**OR**
+
+Create multiple databases and different usernames and passwords and roles to access. You can share usernames and passwords for multiple databases by using the same user and password in each entry.
+
+| Parameter   | Description                                        | Default | `_FILE` | Advanced |
+| ----------- | -------------------------------------------------- | ------- | ------- | -------- |
+| `DB01_NAME` | First Database Name e.g. `database1`               |         | x       |          |
+| `DB01_USER` | First Database User e.g. `user1`                   |         | x       |          |
+| `DB01_PASS` | First Database Pass e.g. `password1`               |         | x       |          |
+| `DB01_ROLE` | (optional) Database Role - See below               |         |         | x        |
+| `DB02_NAME` | Second Database Name e.g. `database1`              |         | x       |          |
+| `DB02_USER` | Second Database User e.g. `user2`                  |         | x       |          |
+| `DB02_PASS` | Second Database Pass e.g. `password2`              |         | x       |          |
+| `DB02_ROLE` | (optional) Database Role - See below               |         |         | x        |
+| `DBXX_...`  | As above, should be able to go all the way to `99` |         |         | x        |
+
+>Role Syntax:
+>
+>`<user>:rolename,rolename` add multiple users and roles to database seperated by a semicolon eg `u1:r1,r2;u2:r1,r2,r3`
+
+Advanced mode allows you to maange more than 3 databases.
+
+#### Replication Options
+
+| Parameter            | Description                                                      | Default                  | `_FILE` | Advanced |
+| -------------------- | ---------------------------------------------------------------- | ------------------------ | ------- | -------- |
+| `ENABLE_REPLICATION` | Enable Replication                                               | `FALSE`                  |         |          |
+| `REPLICATION_SET`    | Name of Replication Set                                          | `rs0`                    |         |          |
+| `REPLICATION_INIT`   | Initialize the Replica set                                       |                          |         |          |
+| `REPLICATION_HOSTS`  | Comma seperated list of hosts to init the replica set            | `0:localhost:$DB_PORT:1` |         |          |
+|                      | Syntax is `id:hostname:port:priority`                            |                          |         |          |
+| `SKIP_INIT`          | Skip creating databases and admin users if used in a replica set | `FALSE`                  |         |          |
+
+#### Other Options
+
+| Parameter | Description | Default | `_FILE` | Advanced |
+| --------- | ----------- | ------- | ------- | -------- |
 
 ## Users and Groups
 
@@ -147,6 +184,9 @@ Below is the complete list of available options that can be used to customize yo
 ### Shell Access
 
 For debugging and maintenance, `bash` and `sh` are available in the container.
+
+- `mongo` and `mongosh` client tools exist inside the container
+
 
 ## Support & Maintenance
 
