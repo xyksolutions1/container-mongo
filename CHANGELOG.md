@@ -1,4 +1,4 @@
-## 7-5.0.0pre 2025-10-23 <code at nfrastack dot com>
+## 7-5.0.0 2025-12-19 <code at nfrastack dot com>
 
    ### Added
       - MongoDB 7.0.27
