@@ -106,12 +106,12 @@ Below is the complete list of available options that can be used to customize yo
 | `ADDITIONAL_PARAMETERS` | Pass additional parameters to the mongod process (works with `SETUP_MODE=MANUAL`) |                          |       |          |
 | `CONFIG_FILE`           | Map and use a config file. Works with both `SETUP_MODE` values.                   |                          |       |          |
 |                         | All environment variables override config file                                    |                          |       |          |
-| `ENABLE_AUTHENTICATION` | Enable Authentication Features                                                    | `FALSE`                  |       |          |
+| `ENABLE_AUTHENTICATION` | Enable Authentication Features                                                    | `TRUE`                   |       |          |
 | `LOG_PATH`              | Log Path                                                                          | `/logs`                  |       |          |
 | `LOG_TYPE`              | Write to `FILE`                                                                   | `FILE`                   |       |          |
 | `ADMIN_NAME`            | Administrator Account name                                                        | `admin`                  | x     |          |
 | `ADMIN_PASS`            | Password of Admin user                                                            | `admin`                  | x     |          |
-| `DATA_PATH`             | Data Location                                                                     | `/data/`               |       |          |
+| `DATA_PATH`             | Data Location                                                                     | `/data/`                 |       |          |
 | `DB_NAME`               | Name of Database to create                                                        | `admin`                  | x     |          |
 | `DB_USER`               | Name of DB User to create if DB_NAME not admin                                    |                          | x     |          |
 | `DB_PASS`               | Password of DB User to create if DB_NAME not admin                                |                          |       |          |
