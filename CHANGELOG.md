@@ -1,3 +1,9 @@
+## 7-5.0.1 2025-12-23 <dave at tiredofit dot ca>
+
+   ### Added
+      - MongoDB 7.0.28
+
+
 ## 7-5.0.0 2025-12-19 <code at nfrastack dot com>
 
    ### Added

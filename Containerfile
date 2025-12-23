@@ -18,7 +18,7 @@ LABEL \
         org.opencontainers.image.licenses="MIT"
 
 ARG \
-    MONGO_VERSION="r7.0.27" \
+    MONGO_VERSION="r7.0.28" \
     MONGO_REPO_URL="https://github.com/mongodb/mongo" \
     MONGOSHELL_VERSION="2.5.10" \
     MONGOSHELL_REPO_URL="https://github.com/mongodb-js/mongosh" \
