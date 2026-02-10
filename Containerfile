@@ -18,7 +18,7 @@ LABEL \
         org.opencontainers.image.licenses="MIT"
 
 ARG \
-    MONGO_VERSION="r7.0.28" \
+    MONGO_VERSION="r8.2.3" \
     MONGO_REPO_URL="https://github.com/mongodb/mongo" \
     MONGOSHELL_VERSION="2.5.10" \
     MONGOSHELL_REPO_URL="https://github.com/mongodb-js/mongosh" \
@@ -77,9 +77,9 @@ RUN echo "" && \
     \
     npm install -g mongosh@${MONGOSHELL_VERSION/v/} && \
     container_build_log add "Mongo Shell" "${MONGOSHELL_VERSION}" "npm" && \
-    clone_git_repo "${MONGO_REPO_URL}" "${MONGO_VERSION}" && \
-    \
-    source /container/base/functions/container/build && \
+    clone_git_repo "${MONGO_REPO_URL}" "${MONGO_VERSION}"
+   
+RUN    source /container/base/functions/container/build && \
     pip install --break-system-packages uv && \
     uv venv /usr/src/mongo-build && \
     source /usr/src/mongo-build/bin/activate && \
