@@ -1,3 +1,10 @@
+## 7-5.0.2 2026-02-10 <code at nfastack dot com>
+
+   ### Added
+      - MongoDB 7.0.29
+      - MongoSH 2.6.0
+
+
 ## 7-5.0.1 2025-12-23 <dave at tiredofit dot ca>
 
    ### Added
