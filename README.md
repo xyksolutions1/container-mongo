@@ -48,11 +48,11 @@ Image tag syntax is:
 
 Example:
 
-`ghcr.io/nfrastack/container-mongo:7` or
+`ghcr.io/nfrastack/container-mongo:8` or
 
 `ghcr.io/nfrastack/container-mongo:latest` or
 
-`ghcr.io/nfrastack/container-mongo:7-1.0` or
+`ghcr.io/nfrastack/container-mongo:8-1.0` or
 
 
 * `latest` will be the most recent mongo version and commit
