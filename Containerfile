@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+# SPDX-FileCopyrightText: © 2026 Nfrastack <code@nfrastack.com>
 #
 # SPDX-License-Identifier: MIT
 
@@ -18,9 +18,9 @@ LABEL \
         org.opencontainers.image.licenses="MIT"
 
 ARG \
-    MONGO_VERSION="r8.2.3" \
+    MONGO_VERSION="r8.2.5" \
     MONGO_REPO_URL="https://github.com/mongodb/mongo" \
-    MONGOSHELL_VERSION="2.5.10" \
+    MONGOSHELL_VERSION="2.7.0" \
     MONGOSHELL_REPO_URL="https://github.com/mongodb-js/mongosh" \
     MONGOTOOLS_VERSION="master" \
     MONGOTOOLS_REPO_URL="https://github.com/mongodb/mongo-tools"
@@ -45,6 +45,7 @@ RUN echo "" && \
                                 libcurl4-openssl-dev \
                                 liblzma-dev \
                                 libkrb5-dev \
+                                libncurses6 \
                                 libssl-dev \
                                 lsb-release \
                                 python3-dev \
@@ -66,6 +67,7 @@ RUN echo "" && \
     package build go && \
     package install \
                         MONGO_BUILD_DEPS \
+    #                    PMONGO_BUILD_DEPS \
                         MONGO_RUN_DEPS \
                         && \
     \
@@ -77,26 +79,23 @@ RUN echo "" && \
     \
     npm install -g mongosh@${MONGOSHELL_VERSION/v/} && \
     container_build_log add "Mongo Shell" "${MONGOSHELL_VERSION}" "npm" && \
-    clone_git_repo "${MONGO_REPO_URL}" "${MONGO_VERSION}"
-   
-RUN    source /container/base/functions/container/build && \
+    \
+    clone_git_repo "${MONGO_REPO_URL}" "${MONGO_VERSION}" /usr/src/mongo && \
+    \
     pip install --break-system-packages uv && \
     uv venv /usr/src/mongo-build && \
     source /usr/src/mongo-build/bin/activate && \
-    cd /usr/src/mongo && \
     uv pip install \
-                    -r /usr/src/mongo/etc/pip/compile-requirements.txt \
+                    poetry==2.0.0 \
                     && \
-    python3 buildscripts/scons.py \
-                                    install-devcore \
-                                        --disable-warnings-as-errors \
-                                        --linker=gold \
-                                        -j$(( $(nproc) - 1 )) \
-                                        && \
-    strip build/install/bin/mongo* && \
-    mv \
-            build/install/bin/mongo* \
-        /usr/local/bin/ && \
+    cd /usr/src/mongo && \
+    poetry install --no-root && \
+    python3 buildscripts/install_bazel.py && \
+    export PATH=/root/.local/bin:$PATH && \
+    bazel build //:install-core && \
+    strip bazel-bin/install-core/bin/mongod && \
+    strip bazel-bin/install-core/bin/mongos && \
+    cp bazel-bin/install-core/bin/mongo* /usr/local/bin/ && \
     container_build_log add "Mongo DB" "${MONGO_VERSION}" "${MONGO_REPO_URL}" && \
     package remove \
                     MONGO_BUILD_DEPS \

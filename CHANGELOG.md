@@ -1,3 +1,10 @@
+## 8-5.0.2 2026-03-06 <code at nfrastack dot com>
+
+   ### Added
+      - MongoDB 8.2.5
+      - Mongo Shell 2.7.0
+
+
 ## 7-5.0.1 2025-12-23 <dave at tiredofit dot ca>
 
    ### Added

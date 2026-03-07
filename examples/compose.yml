@@ -1,7 +1,7 @@
 services:
   mongo-db:
     container_name: mongo-db
-    image: docker.io/nfrastack/mongo:7
+    image: docker.io/nfrastack/mongo:8
     ports:
       - "27017:27017"
     volumes:
